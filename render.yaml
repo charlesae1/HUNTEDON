@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: discord-online-check
+    env: node
+    plan: free
+    buildCommand: "npm install"
+    startCommand: "node index.js"
+    envVars:
+      - key: TOKEN
+        sync: false
+      - key: CHANNEL_ID
+        sync: false
