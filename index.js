@@ -11,14 +11,20 @@ const CHANNEL_ID = process.env.CHANNEL_ID;
 // Lista de personagens
 const personagens = ['Jojotap', 'Assemblas Rush'];
 
-// Status anterior para evitar repetição
+// Armazena o status anterior
 const statusAnterior = {};
 
 async function verificarStatus(channel) {
   for (const nome of personagens) {
     const url = `https://rubinot.com.br/?subtopic=characters&name=${encodeURIComponent(nome)}`;
+
     try {
-      const { data: html } = await axios.get(url);
+      const { data: html } = await axios.get(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0' // Evita bloqueio 403
+        }
+      });
+
       const estaOnline = html.includes('class="green">Online');
 
       if (estaOnline && !statusAnterior[nome]) {
@@ -45,11 +51,11 @@ client.once('ready', () => {
     return;
   }
 
-  verificarStatus(channel); // Checa ao iniciar
+  verificarStatus(channel); // Verifica ao iniciar
 
   setInterval(() => {
     verificarStatus(channel);
-  }, 60 * 1000); // Checa a cada 1 minuto
+  }, 60 * 1000); // Verifica a cada 1 minuto
 });
 
 client.login(TOKEN);
