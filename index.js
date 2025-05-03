@@ -1,5 +1,5 @@
 const { Client, GatewayIntentBits } = require('discord.js');
-const axios = require('axios');
+const puppeteer = require('puppeteer'); // Importando Puppeteer
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
@@ -19,13 +19,15 @@ async function verificarStatus(channel) {
     const url = `https://rubinot.com.br/?subtopic=characters&name=${encodeURIComponent(nome)}`;
 
     try {
-      const { data: html } = await axios.get(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0' // Evita bloqueio 403
-        }
-      });
+      // Lógica de navegação usando Puppeteer
+      const browser = await puppeteer.launch();
+      const page = await browser.newPage();
+      await page.goto(url);
 
-      const estaOnline = html.includes('class="green">Online');
+      // Verifica se o nome do personagem está "Online"
+      const estaOnline = await page.evaluate(() => {
+        return document.body.innerHTML.includes('class="green">Online');
+      });
 
       if (estaOnline && !statusAnterior[nome]) {
         channel.send(`${nome} está 🟢 **Online**`);
@@ -36,6 +38,7 @@ async function verificarStatus(channel) {
         statusAnterior[nome] = false;
       }
 
+      await browser.close(); // Fecha o navegador
     } catch (err) {
       console.error(`Erro ao verificar ${nome}: ${err.message}`);
     }
